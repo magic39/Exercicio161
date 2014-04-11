@@ -166,28 +166,18 @@ class InversorPrivado implements Inversor, Resumible{
     
     public @Override
     boolean comprar(int id, int cantidade){
-        int cantidadeac = 0;
-        double valor = 0;
         boolean comprar = false;
         try {
             PreparedStatement comprobar  = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT * FROM usuarios_valores WHERE id_valor = ?");
             comprobar.setInt(1, id);
             ResultSet rs = comprobar.executeQuery();
             if(rs.next()){
-                cantidadeac = rs.getInt("cantidade");
                 PreparedStatement ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("UPDATE usuarios_valores SET login = ?, id_valor = ?, cantidade = ?");
                 ps.setString(1, login);
                 ps.setInt(2, id);
                 ps.setInt(3, cantidade+rs.getInt("cantidade"));
                 ps.executeUpdate();
                 System.out.println("Datos modificados correctamente");
-                
-                PreparedStatement ps2 = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT * FROM valores WHERE id = ?");
-                ps2.setInt(1, rs.getInt("id_valor"));
-                ResultSet rs2 = ps2.executeQuery();
-                while(rs2.next()){
-                    valor = rs2.getDouble("valor");
-                }
                 
             }else{
                 PreparedStatement ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("INSERT INTO usuarios_valores VALUES(?,?,?)");
@@ -218,8 +208,6 @@ class InversorPrivado implements Inversor, Resumible{
     @Override
     public boolean vender(int id, int cantidade) {
         boolean vender = false;
-        int cantidadeac = 0;
-        double valor = 0;
         try {
             PreparedStatement comprobar  = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT * FROM usuarios_valores WHERE id_valor = ?");
             comprobar.setInt(1, id);
@@ -231,13 +219,6 @@ class InversorPrivado implements Inversor, Resumible{
                         ps.setInt(3, (rs.getInt("cantidade")-(cantidade)));
                         ps.executeUpdate();
                         System.out.println("Datos modificados correctamente");
-                        
-                        PreparedStatement ps2 = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT * FROM valores WHERE id = ?");
-                        ps2.setInt(1, rs.getInt("id_valor"));
-                        ResultSet rs2 = ps2.executeQuery();
-                        while(rs2.next()){
-                            valor = rs2.getDouble("valor");
-                        }
                 }else{
                     System.out.println("No tienes acciones para vender");
                 }
