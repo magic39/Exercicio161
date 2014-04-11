@@ -50,10 +50,16 @@ class BolsaEnBD implements Bolsa, Resumible {
         resultado += "Este é o resumo da bolsa implicada:\n";
         resultado += "Número de inversores: ";
         try {
-            PreparedStatement ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT COUNT(login) AS usuarios FROM usuarios");
+            PreparedStatement ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT COUNT(login) AS usuarios FROM usuario");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 resultado += rs.getInt("usuarios") + "\n";
+            }
+            resultado += "Número de empresas na bolsa: ";
+            ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT COUNT(nome) AS empresas FROM valores");
+            ResultSet rs2 = ps.executeQuery();
+            if (rs2.next()) {
+                resultado += rs2.getInt("empresas") + "\n";
             }
             
         } catch(SQLException e){
@@ -160,8 +166,34 @@ class InversorPrivado implements Inversor, Resumible{
     private String login;
     
     public String resumir() {
-        return "Este é o resumo da bolsa implicada";
-    }
+        String resultado = ".....................\n";
+        resultado += "Este é o resumo de inversor:\n";
+        resultado += "Inversor: ";
+        double capital = 0;
+        try {
+            PreparedStatement ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT * FROM usuario WHERE login = ?");
+            ps.setString(1, login);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                resultado += rs.getString("login") + "\n";
+                capital = rs.getDouble("capital");
+            }
+            resultado += "Capital: "+capital +"\n";
+            
+            ps = (PreparedStatement) BolsaEnBD.con.prepareStatement("SELECT * FROM usuarios_valores AS uv, valores as v WHERE login = ? AND uv.id_valor = v.id");
+            ps.setString(1, rs.getString("login"));
+            ResultSet rs2 = ps.executeQuery();
+            resultado += "Cantidade de accions: "+"\n";
+            if (rs2.next()) {
+                resultado += rs2.getString("nome")+": "+rs2.getInt("cantidade") + "\n";
+            }
+            
+        } catch(SQLException e){
+            resultado += "Non foi posible establecer conexión coa base de datos\n";
+        }
+        resultado += ".....................\n";
+        return resultado;
+     }
     
     
     public @Override
@@ -282,12 +314,12 @@ public class Exercicio161 {
         BolsaEnBD bolsa1 = new BolsaEnBD();
         if(bolsa1.iniciar()){
             bolsa1.actualizar();
-            bolsa1.resumir();
+            System.out.println(bolsa1.resumir());
             if(bolsa1.identificar("Antonio", "abc123.")){
                 InversorPrivado i1 = new InversorPrivado();
                 i1.setLogin("Antonio");
-                i1.vender(1, 6000);
-                i1.resumir();
+                i1.comprar(1, 300);
+                System.out.println(i1.resumir());
                 i1.valorar();
             }
         }
